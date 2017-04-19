@@ -7,6 +7,7 @@ public class App {
 	private int keySize = 27;
 	private int locSize = 27;
 	private int altSize = 6;
+	private int recordSize = keySize + locSize + altSize;
 	private DirectFile df;
 
 	public App(DirectFile df) {
@@ -25,6 +26,8 @@ public class App {
 				action = Integer.parseInt(in.nextLine());
 
 				String key;
+				String loc;
+				String alt;
 				switch (action) {
 				case 1:
 					System.out.printf("\nMountain Name: ");
@@ -32,11 +35,11 @@ public class App {
 					if (key.length() > 27)
 						key = key.substring(0, 26);
 					System.out.printf("Country: ");
-					String loc = in.nextLine();
+					loc = in.nextLine();
 					if (loc.length() > 27)
 						loc = loc.substring(0, 26);
 					System.out.printf("Altitude: ");
-					String alt = in.nextLine();
+					alt = in.nextLine();
 					if (alt.length() > 6)
 						alt = alt.substring(0, 5);
 					String insert = format(key, loc, alt);
@@ -50,15 +53,17 @@ public class App {
 					key = in.nextLine();
 					if (key.length() > 27)
 						key = key.substring(0, 26);
-					char[] record = formatKey(key).toCharArray();
+					char[] record = formatKey(key);
 					if (df.findRecord(record)) {
-						for (int i = 0; i < record.length; i++) {
-							if (record[i] != '#')
-								System.out.print(record[i]);
-							else
-								System.out.print(',');
-						}
-						System.out.println();
+						String tmp = "";
+						
+						for(int i = 0; i < record.length; i++)
+							tmp+=record[i];
+						key = tmp.substring(0, keySize).substring(0,key.length()-1).trim();
+						loc = tmp.substring(0, locSize).substring(0,loc.length()-1).trim();
+						alt = tmp.substring(0, altSize);
+						
+						System.out.printf(key+"\n\n");
 					} else
 						System.out.printf("\nRecord not found\n\n");
 					break;
@@ -70,6 +75,7 @@ public class App {
 					System.out.printf("Please enter a valid option\n\n");
 				}
 			} catch (Exception e) {
+				System.out.println(e);
 				System.out.printf("Please enter a numeric value\n\n");
 			}
 		}
@@ -80,11 +86,19 @@ public class App {
 
 	}
 
-	private String formatKey(String key) {
-		for (int i = key.length(); i < keySize; i++)
-			key += " ";
-		return key;
+	private char[] formatKey(String key) {
+		char[] toReturn = new char[recordSize];
 
+		for (int i = 0; i < key.length(); i++)
+			toReturn[i] = key.charAt(i);
+		for (int i = toReturn.length; i < recordSize; i++) {
+			if (i == keySize - 1)
+				toReturn[i] = '#';
+			else
+				toReturn[i] = ' ';
+		}
+
+		return toReturn;
 	}
 
 	private String format(String key, String loc, String alt) {
