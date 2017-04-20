@@ -36,7 +36,7 @@ public class DirectFile {
 		
 		// Get the bucket the record should be inserted in
 		int bucket = hash(getKey(record)) + firstAllocated;
-		
+
 		// Copy the record to insert and attempt to find it. If it exists then
 		// we have a duplicate key error.
 		char[] tmp = new char[recordSize];
@@ -48,7 +48,7 @@ public class DirectFile {
 		// this sector then the buffer will become the first sector with an open
 		// space.
 		int index = getEmptyRecord(bucket);
-		System.out.println("Index: " + index);
+
 		// Insert into the sector buffer
 		for (int i = 0; i < recordSize; i++) {
 			buffer[index++] = record[i];
@@ -127,7 +127,7 @@ public class DirectFile {
 		for (char letter : key)
 			tmp += letter;
 		// Return the hash value of the key.
-		return Math.abs(tmp.hashCode()) % (bucketsAllocated);
+		return Math.abs(tmp.trim().hashCode()) % (bucketsAllocated);
 	}
 
 	private boolean checkKey(int index, char[] key) {
@@ -204,8 +204,14 @@ public class DirectFile {
 		// Retrieve an index of the first empty space in the sector buffer.
 		int i = 0;
 		while (i < sectorSize) {
-			if (buffer[i] == '\000')
+			if (buffer[i] == '\000'){
+				if(i + recordSize-1 > sectorSize){
+					overflowBuckets++;
+					disk.readSector(++bucket, buffer);
+					return getEmptyRecord(++bucket);
+				}
 				return i;
+			}
 			i++;
 		}
 		return i;
