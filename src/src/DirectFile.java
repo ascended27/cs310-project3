@@ -8,8 +8,6 @@ public class DirectFile {
 	private int recordSize; // in characters
 	private int keySize; // in characters
 	private int recordsPerSector;
-	private int recordsInSector;
-	private int sectorInUse;
 	private int firstAllocated; // sector number
 	private int bucketsAllocated; // buckets (i.e. sectors) originally allocated
 	private int firstOverflow; // sector number
@@ -22,7 +20,6 @@ public class DirectFile {
 		this.keySize = keySize;
 		this.firstAllocated = firstAllocated;
 		this.bucketsAllocated = bucketsAllocated;
-		this.sectorInUse = firstAllocated;
 		sectorSize = disk.getSectorSize();
 		recordsPerSector = disk.getSectorSize() / recordSize;
 		firstOverflow = 0;
@@ -32,9 +29,14 @@ public class DirectFile {
 	}
 
 	public boolean insertRecord(char[] record) {
+		// Out of buckets to overflow into
+		if(overflowBuckets+1 > bucketsAllocated){
+			return false;
+		}
+		
 		// Get the bucket the record should be inserted in
-		int bucket = hash(getKey(record));
-		System.out.println("Bucket: " + bucket);
+		int bucket = hash(getKey(record)) + firstAllocated;
+		
 		// Copy the record to insert and attempt to find it. If it exists then
 		// we have a duplicate key error.
 		char[] tmp = new char[recordSize];
@@ -61,8 +63,8 @@ public class DirectFile {
 
 	public boolean findRecord(char[] record) {
 		// Get the bucket the record should be inserted in.
-		int bucket = hash(getKey(record));
-		System.out.println("Bucket: " + bucket);
+		int bucket = hash(getKey(record)) + firstAllocated;
+
 		// Read the sector the record should be into the buffer.
 		disk.readSector(bucket, buffer);
 
@@ -125,7 +127,7 @@ public class DirectFile {
 		for (char letter : key)
 			tmp += letter;
 		// Return the hash value of the key.
-		return Math.abs(tmp.trim().hashCode()) % bucketsAllocated;
+		return Math.abs(tmp.hashCode()) % (bucketsAllocated);
 	}
 
 	private boolean checkKey(int index, char[] key) {
