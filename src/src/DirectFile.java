@@ -29,11 +29,7 @@ public class DirectFile {
 	}
 
 	public boolean insertRecord(char[] record) {
-		// Out of buckets to overflow into
-		if(overflowBuckets+1 > bucketsAllocated){
-			return false;
-		}
-		
+
 		// Get the bucket the record should be inserted in
 		int bucket = hash(getKey(record)) + firstAllocated;
 
@@ -55,7 +51,7 @@ public class DirectFile {
 		}
 
 		// Write the updated sector buffer to the disk.
-		disk.writeSector(bucket + overflowBuckets, buffer);
+		disk.writeSector(bucket, buffer);
 
 		// Operation was successful so return true.
 		return true;
@@ -95,7 +91,7 @@ public class DirectFile {
 				// Loop over the overflow buckets searching for the key.
 				int count = 1;
 				while (count <= overflowBuckets) {
-					disk.readSector(bucket + count, buffer);
+					disk.readSector(firstAllocated + bucketsAllocated + count, buffer);
 					for (int i = 0; i < sectorSize; i += recordSize) {
 						// If the key is in the buffer then set the index to the
 						// start of the record.
@@ -184,7 +180,7 @@ public class DirectFile {
 		// buffer isn't a null character then move the next sector to the buffer
 		// this one is full.
 		if (overflowBuckets != 0 && buffer[buffer.length - 1] != '\000') {
-			bucket += overflowBuckets++;
+			bucket = firstAllocated + bucketsAllocated + overflowBuckets++;
 			disk.readSector(bucket, buffer);
 		}
 		// If the current buffer is full and there are no overflow buckets then
@@ -194,7 +190,7 @@ public class DirectFile {
 				if (overflowBuckets == 0) {
 					firstOverflow = bucket;
 					overflowBuckets++;
-					bucket = overflowBuckets + bucket;
+					bucket = firstAllocated + overflowBuckets + bucketsAllocated;
 				} else
 					bucket += overflowBuckets++;
 				disk.readSector(bucket, buffer);
@@ -204,8 +200,8 @@ public class DirectFile {
 		// Retrieve an index of the first empty space in the sector buffer.
 		int i = 0;
 		while (i < sectorSize) {
-			if (buffer[i] == '\000'){
-				if(i + recordSize-1 > sectorSize){
+			if (buffer[i] == '\000') {
+				if (i + recordSize - 1 > sectorSize) {
 					overflowBuckets++;
 					disk.readSector(++bucket, buffer);
 					return getEmptyRecord(++bucket);
