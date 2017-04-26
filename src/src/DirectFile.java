@@ -39,7 +39,8 @@ public class DirectFile {
 		copyArr(record, tmp);
 		if (findRecord(tmp))
 			return false;
-
+		
+		disk.readSector(bucket, buffer);
 		// Retrieve the first empty record in the buffer. If there are none in
 		// this sector then the buffer will become the first sector with an open
 		// space.
@@ -188,9 +189,9 @@ public class DirectFile {
 		if (buffer[buffer.length - 1] != '\000') {
 			while (buffer[buffer.length - 1] != '\000') {
 				if (overflowBuckets == 0) {
-					firstOverflow = bucket;
 					overflowBuckets++;
 					bucket = firstAllocated + overflowBuckets + bucketsAllocated;
+					firstOverflow = bucket;
 				} else
 					bucket += overflowBuckets++;
 				disk.readSector(bucket, buffer);
@@ -202,9 +203,9 @@ public class DirectFile {
 		while (i < sectorSize) {
 			if (buffer[i] == '\000') {
 				if (i + recordSize - 1 > sectorSize) {
-					overflowBuckets++;
-					disk.readSector(++bucket, buffer);
-					return getEmptyRecord(++bucket);
+					bucket = firstAllocated + bucketsAllocated + (++overflowBuckets);
+					disk.readSector(bucket, buffer);
+					return getEmptyRecord(bucket);
 				}
 				return i;
 			}
