@@ -118,7 +118,7 @@ public class App {
 		for (int i = alt.length(); i < altSize; i++)
 			alt += " ";
 
-		return key + "#" + loc + "#" + alt;
+		return key.substring(0,keySize-1) + "#" + loc.substring(0, locSize-1) + "#" + alt;
 	}
 
 	private void printMenu() {
