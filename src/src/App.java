@@ -55,7 +55,7 @@ public class App {
 					System.out.printf("\nMountain Name: ");
 					key = in.nextLine();
 					if (key.length() > 27)
-						key = key.substring(0, 26);
+						key = key.substring(0, 27);
 					alt = loc = "";
 					char[] record = format(key, loc, alt).toCharArray();
 					if (df.findRecord(record)) {
@@ -111,14 +111,14 @@ public class App {
 	}
 
 	private String format(String key, String loc, String alt) {
-		for (int i = key.length(); i < keySize - 1; i++)
+		for (int i = key.length(); i < keySize; i++)
 			key += " ";
-		for (int i = loc.length(); i < locSize - 1; i++)
+		for (int i = loc.length(); i < locSize; i++)
 			loc += " ";
 		for (int i = alt.length(); i < altSize; i++)
 			alt += " ";
 
-		return key.substring(0,keySize-1) + "#" + loc.substring(0, locSize-1) + "#" + alt;
+		return key.substring(0,keySize) + loc.substring(0, locSize) + alt;
 	}
 
 	private void printMenu() {

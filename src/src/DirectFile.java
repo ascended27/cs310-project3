@@ -44,8 +44,10 @@ public class DirectFile {
 		// Retrieve the first empty record in the buffer. If there are none in
 		// this sector then the buffer will become the first sector with an open
 		// space.
-		int index = getEmptyRecord(bucket);
-
+		int[] indexBucket = getEmptyRecord(bucket);
+		int index = indexBucket[0];
+		bucket = indexBucket[1];
+		
 		// Insert into the sector buffer
 		for (int i = 0; i < recordSize; i++) {
 			buffer[index++] = record[i];
@@ -131,10 +133,7 @@ public class DirectFile {
 		// Retrieve the key at the passed index in the buffer.
 		String keyAtIndex = "";
 		for (int i = index; i < index + keySize; i++) {
-			if (buffer[i] != '#')
 				keyAtIndex += buffer[i];
-			else
-				break;
 		}
 
 		// Convert the char[] passed to a string
@@ -176,7 +175,9 @@ public class DirectFile {
 		return key;
 	}
 
-	private int getEmptyRecord(int bucket) {
+	private int[] getEmptyRecord(int bucket) {
+		int[] indexBucket = new int[2];
+		
 		// If there are overflow buckets and the last character in the current
 		// buffer isn't a null character then move the next sector to the buffer
 		// this one is full.
@@ -207,11 +208,19 @@ public class DirectFile {
 					disk.readSector(bucket, buffer);
 					return getEmptyRecord(bucket);
 				}
-				return i;
+				indexBucket[0] = i;
+				indexBucket[1] = bucket;
+				return indexBucket;
+			} else if(i + recordSize - 1 > sectorSize){
+				bucket = firstAllocated + bucketsAllocated + (++overflowBuckets);
+				disk.readSector(bucket, buffer);
+				return getEmptyRecord(bucket);
 			}
 			i++;
-		}
-		return i;
+		}			
+		indexBucket[0] = i;
+		indexBucket[1] = bucket;
+		return indexBucket;
 	}
 
 }
