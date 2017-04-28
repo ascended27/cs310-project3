@@ -73,7 +73,8 @@ public class App {
 						alt = alt.substring(0, altSize);
 					// Get the combined string of all the record components
 					String insert = format(key, loc, alt);
-					// Insert the record, and if it is successful then let the user know it was.
+					// Insert the record, and if it is successful then let the
+					// user know it was.
 					if (df.insertRecord(insert.toCharArray()))
 						System.out.printf("\nRecord inserted successfully\n\n");
 					// Otherwise notify them that it failed
@@ -134,43 +135,83 @@ public class App {
 		}
 	}
 
-	//TODO: Finish Commenting
+	/**
+	 * Loads in the given file into the disk. The file to load must be in the
+	 * same directory as this class.
+	 * 
+	 * Must be of the format: key#location#altitude
+	 * 
+	 * @param fileName
+	 *            file to load, must include .txt extension
+	 */
 	public void loadFile(String fileName) {
+		// Attempt to load the file
 		try {
+			// Create a buffered reader that will read in the file passed.
 			String path = new File("").getAbsolutePath() + "/src/src/" + fileName;
 			path = path.replace("\\", "/");
 			BufferedReader br = new BufferedReader(new FileReader(path));
 
+			// Get the first line in the file.
 			String line = br.readLine();
+
+			// While there are lines to read keep inserting records.
 			while (line != null) {
+				// Extract all the record fields.
 				String key = line.substring(0, line.indexOf("#"));
 				line = line.substring(line.indexOf("#") + 1, line.length());
 				String loc = line.substring(0, line.indexOf("#"));
 				line = line.substring(line.indexOf("#") + 1, line.length());
 				String alt = line;
 
+				// Insert the new record into the direct file.
 				df.insertRecord(format(key, loc, alt).toCharArray());
+
+				// Get the next record in the file.
 				line = br.readLine();
 			}
 
+			// Close the buffered reader, it is no longer needed.
 			br.close();
-			// If an error occurs notify that user.
-		} catch (Exception e) {
+		}
+		// If an exception is thrown assume it is
+		// because the file doesn't exist.
+		catch (Exception e) {
 			System.out.printf("%s does not exist\n\n", fileName);
 		}
 	}
 
+	/**
+	 * Formats the passed parameters into the necessary format for the direct
+	 * file to store them.
+	 * 
+	 * @param key
+	 *            Key field of the record
+	 * @param loc
+	 *            Location field of the record
+	 * @param alt
+	 *            Altitude field of the record
+	 * @return The formating string of all the record fields concatenated
+	 *         together.
+	 */
 	private String format(String key, String loc, String alt) {
+		// Pad the key field.
 		for (int i = key.length(); i < keySize; i++)
 			key += " ";
+		// Pad the location field.
 		for (int i = loc.length(); i < locSize; i++)
 			loc += " ";
+		// Pad the altitude field.
 		for (int i = alt.length(); i < altSize; i++)
 			alt += " ";
 
+		// Return the concatenated string.
 		return key.substring(0, keySize) + loc.substring(0, locSize) + alt;
 	}
 
+	/**
+	 * Prints out the menu that is used in the menu loop.
+	 */
 	private void printMenu() {
 		System.out.printf("1.Insert Record\n2.Find Record\n3.Quit\n-> ");
 	}
